@@ -1,1 +1,5 @@
 
+train['satisfaction'].unique()
+train['Customer Type'].unique()
+train['Type of Travel'].unique()
+train['Class'].unique()
