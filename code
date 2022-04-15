@@ -1,5 +1,37 @@
+#Importing the necessary libraries 
 
-train['satisfaction'].unique()
-train['Customer Type'].unique()
-train['Type of Travel'].unique()
-train['Class'].unique()
+
+import pandas as pd
+import numpy as np
+import matplotlib as plt
+import seaborn as sns 
+
+from sklearn.preprocessing import StandardScaler 
+from sklearn import metrics 
+
+import warnings
+warnings.filterwarnings('ignore')
+
+#Loading the training dataset 
+train = pd.read_csv("/Users/mayankagarwal/Documents/Stat 432 Project/train.csv")
+
+#Loading the testing dataset 
+test = pd.read_csv("/Users/mayankagarwal/Documents/Stat 432 Project/test.csv")
+
+#looking at the first 5 rows. 
+train.head()
+
+test.head()
+train.info()
+
+sns.countplot(x = 'Gender', data = train)
+
+sns.countplot(x = 'Customer Type', data = train)
+
+sns.countplot(x = 'Type of Travel', data = train)
+
+sns.countplot(x = 'Class', data = train)
+
+test.isna().sum()
+
+train.describe()
