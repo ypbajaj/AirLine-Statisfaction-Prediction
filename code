@@ -35,3 +35,73 @@ sns.countplot(x = 'Class', data = train)
 test.isna().sum()
 
 train.describe()
+
+## Cleaning and Transforming the Data 
+
+#Dropping the first two columns
+train = train.drop(['Unnamed: 0','id'], axis = 1)
+test = test.drop(['Unnamed: 0','id'], axis = 1)
+
+#Function to Transform the response variable 
+
+def response(temp):
+    if temp == "satisfied":
+        return 1
+    elif temp == 'neutral or dissatisfied':
+        return 0
+
+#Function to transform 'Gender' feature 
+
+def gender(temp):
+    if temp == "Male":
+        return 0 
+    elif temp == "Female":
+        return 1 
+    else:
+        return -1 
+
+#Function to transform 'Customer Type' feature 
+
+def cust_type(temp):
+    if temp == "Loyal Customer":
+        return 1
+    elif temp == "disloyal Customer":
+        return 0
+    else:
+        return -1
+
+#Function to transform 'Type of Travel' feature 
+
+def type_travel(temp):
+    if temp == "Business travel":
+        return 1
+    elif temp == "Personal Travel":
+        return 0
+    else:
+        return -1 
+
+#Function to transform 'Class' feature 
+
+def class_type(temp):
+    if temp == "Eco Plus":
+        return 2
+    elif temp == "Business":
+        return 1
+    elif temp == "Eco":
+        return 0 
+    else:
+        return -1
+
+#Function to perform the transformations on the dataset 
+
+def transform_features(df_temp):
+    df_temp['satisfaction'] = df_temp['satisfaction'].apply(response)
+    df_temp['Gender'] = df_temp['Gender'].apply(gender)
+    df_temp['Customer Type'] = df_temp['Customer Type'].apply(cust_type)
+    df_temp['Type of Travel'] = df_temp['Type of Travel'].apply(type_travel)
+    df_temp['Class'] = df_temp['Class'].apply(class_type)
+    
+    return df_temp
+
+train = transform_features(train)
+test = transform_features(test)
