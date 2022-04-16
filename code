@@ -105,3 +105,63 @@ def transform_features(df_temp):
 
 train = transform_features(train)
 test = transform_features(test)
+
+## EDA-
+
+#Checking Info of our data -
+train.info()
+
+#Checking for Data Imbalance -
+fig = plt.figure(figsize = (9,6))
+train['satisfaction'].value_counts(normalize = True).plot(kind='bar', color= ['blue','yellow'], alpha = 0.9, rot=0)
+plt.title('Satisfaction Level of customers')
+plt.show()
+
+## Hence we see that we have  56.67% of 'Neutral or Dissatisfied' customers as compared to 43.33% of 'Satisfied' customers and thus our data is almost balanced.
+train['satisfaction'].value_counts(normalize = True)
+
+## For both Males and Females, we see that no. of of 'Neutral or Dissatisfied' customers are more as compared to 'Satisfied' customers. The same logic applies to 'Loyal' and 'DisLoyal' Customers. Also we see that the no . of Loyal customers are way more than 'Disloyal' customers.
+import seaborn as sns 
+with sns.axes_style(style='ticks'):
+    g = sns.catplot("satisfaction", col="Gender", col_wrap=2, data=train, kind="count", height=3, aspect=2.0)  
+    g = sns.catplot("satisfaction", col="Customer Type", col_wrap=2, data=train, kind="count", height=3, aspect=2.0)
+    
+## We see that our early age passengers i.e. 8-38 are more nuetral or dissatisfied as comapred to satisfied. Passengers aged 39-60 have higher satisfaction level and then the trend for dissatisfied or neutral is again higher for the remaining higher age group. 
+with sns.axes_style('dark'):
+    g = sns.catplot("Age", data=train, aspect=4.0, kind='count', hue='satisfaction', order=range(6, 90))
+    g.set_ylabels('Count of Satisfaction level at a certain age')
+    
+## For business travel in business class category, th## For Eco Plus class, very inconvenient Departure/Arrival time (Departure/Arrival_time_convenient = 0) has really high no. of dissatisfied passengers, even when online boarding is done very well. For other combinations, no. of satisfied passengers are on the higher side compared to no. of dissatisfied passengers.e number of satisfied passengers are quite on the higher side for longer flight distance. For other combinations, there is almost equal distribution of satisfied and dissatisfied passengers.
+with sns.axes_style('dark'):
+    g = sns.catplot(x="Flight Distance", y="Type of Travel", hue="satisfaction", col="Class", data=train, kind="boxen", height=5.5, aspect=.9)
+  
+## For Eco Plus class, very inconvenient Departure/Arrival time (Departure/Arrival_time_convenient = 0) has really high no. of dissatisfied passengers, even when online boarding is done very well. For other combinations, no. of satisfied passengers are on the higher side compared to no. of dissatisfied passengers.
+with sns.axes_style('dark'):
+    g = sns.catplot(x="Departure/Arrival time convenient", y="Online boarding", hue="satisfaction", col="Class", data=train, kind="bar", height=5.5, aspect=.9)
+ 
+#For personal travel (specially Eco Plus and Eco), the no. of dissatisfied passengers are really high when arrival delay in minutes is high. As observed the level of dissatisfied or neutral passengers is always more than the satisfied passengers whenever there's a delay in arrival or departure time. 
+with sns.axes_style('white'):
+    g = sns.catplot(x="Class", y="Departure Delay in Minutes", hue="satisfaction", col="Type of Travel", data=train, kind="bar", height=4.5, aspect=.8)
+    g = sns.catplot(x="Class", y="Arrival Delay in Minutes", hue="satisfaction", col="Type of Travel", data=train, kind="bar", height=4.5, aspect=.8)
+  
+# For business class, it is observed that all gate locations have higher no. of dissatisfied passengers when baggage handling is not done perfectly well (rating <= 4). For Eco Plus, when the gate location is 1 and for Eco, when the gate location is 2, even when the baggages are handled in a mediocre way (rating in range 2.0 - 4.0), passengers remained dissatisfied.
+with sns.axes_style('white'):
+    g = sns.catplot(x="Gate location", y="Baggage handling", hue="satisfaction", col="Class", data=train, kind="boxen", height=4.5, aspect=.8)
+  
+## The Eco Plus passengers are mostly satisfied without in-flight wi-fi service (rating 0) and medium level of in-flight entertainment (rating 2 - 4). For Business class passengers, only highest level of in-flight entertainment (rating 5) can make them satisfied. For Eco passengers, high level of in-flight entertainment (rating 3 - 5) and very high wi-fi service availability (rating 5) can make them satisfied.
+with sns.axes_style('white'):
+    g = sns.catplot(x="Inflight wifi service", y="Inflight entertainment", hue="satisfaction", col="Class", data=train, kind="box", height=4.5, aspect=.8)
+    
+## But naturally as seat comfort increases, the customer satisfaction increases as well.
+with sns.axes_style(style='ticks'):
+    g = sns.catplot("satisfaction", col="Seat comfort", col_wrap=6, data=train, kind="count", height=2.5, aspect=.8)
+    
+## As cleanliness increases, the satisfaction level of passengers increases.
+with sns.axes_style(style='ticks'):
+    g = sns.catplot("satisfaction", col="Cleanliness", col_wrap=6, data=train, kind="count", height=2.5, aspect=.8)
+   
+## The maximum no. of satisfied passengers belong to the category of 4 and 5 rating givers. Below rating 4, passengers are mostly dissatisfied.
+with sns.axes_style(style='ticks'):
+    g = sns.catplot("satisfaction", col="Food and drink", col_wrap=6, data=train, kind="count", height=2.5, aspect=.8)
+    
+
