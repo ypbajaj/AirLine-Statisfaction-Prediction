@@ -176,3 +176,46 @@ mask = np.triu(np.ones_like(correlation, dtype=np.bool))
 f, ax = plt.subplots(figsize=(20, 20))
 pal_values = sns.diverging_palette(150, 1, as_cmap=True)
 sns.heatmap(correlation, mask=mask, cmap=pal_values, vmax=None, center=0,square=True, annot=True, linewidths=.5, cbar_kws={"shrink": .9})
+
+## Scaling the data so that all the predictors are given equal importance.
+from sklearn import preprocessing
+r_scaler = preprocessing.MinMaxScaler()
+r_scaler.fit(train)
+scaled_data = pd.DataFrame(r_scaler.transform(train), columns=train.columns)
+scaled_data.head()
+
+## Chi Square Test for feature selection
+from sklearn.feature_selection import SelectKBest, chi2
+X = scaled_data.loc[:,scaled_data.columns!='satisfaction']
+y = scaled_data[['satisfaction']]
+selector = SelectKBest(chi2, k=10)
+selector.fit(X, y)
+train_new = selector.transform(X)
+print(X.columns[selector.get_support(indices=True)])
+
+## Check for collinearity among predictors -
+correlation = train.corr()
+mask = np.triu(np.ones_like(correlation, dtype=np.bool))
+f, ax = plt.subplots(figsize=(20, 20))
+pal_values = sns.diverging_palette(150, 1, as_cmap=True)
+sns.heatmap(correlation, mask=mask, cmap=pal_values, vmax=None, center=0,square=True, annot=True, linewidths=.5, cbar_kws={"shrink": .9})
+
+##Permutation test -
+pip install eli5
+
+from sklearn.ensemble import RandomForestClassifier as rf
+import warnings
+warnings.filterwarnings("ignore")
+import eli5
+from eli5.sklearn import PermutationImportance
+
+perm = PermutationImportance(rf(n_estimators=100, random_state=0).fit(X,y),random_state=1).fit(X,y)
+eli5.show_weights(perm, feature_names = X.columns.tolist())
+
+#PCA -
+from sklearn.decomposition import PCA
+pca = PCA(n_components=10)
+principalComponents = pca.fit_transform(X)
+principalDf = pd.DataFrame(data = principalComponents
+             , columns = ['PC1', 'PC2','PC3','PC4','PC5','PC6','PC7','PC8','PC9','PC10'])
+principalDf
