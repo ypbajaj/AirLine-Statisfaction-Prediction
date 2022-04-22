@@ -1,5 +1,13 @@
+## Introduction:
+The aviation industry is growing rapidly as airline companies look to retain and aquire new customers. Airlines can quickly adapt to the market in a competitive environment. Usually Price is used as the deciding competitive component. Passengers have also started considering an airline's services. In this analysis we will find out how the services affect a passenger's satisfaction.  <br>
+<br>
+To ensure profitability, aviation companies can offer quality services to improve customer satisfaction and create a loyal customer base. This will be rewarding for the airlines in the long run. <br>
+<br>
+Airline management can employ a customer driven approach to determine which services are desired the most by passengers. 
 
+The U.S. Airline Passenger Satisfaction Dataset describes passenger satisfaction by conduct a survey at the airport after arriving in 2015. The dataset details each customer's information as it relates to age, gender, type of travel, flight distance, class type, departure and arrival delay.  
 
+The dataset also contains 14 airline services of customer satisfaction levels ranging from values 0–5. The airline services for measured satis- faction level categories such: inflight wi-fi service, departure/arrival time convenience, ease of online booking, gate location, food and drink, online boarding, seat comfort, inflight entertainment, on-board service, leg-room service, baggage handling, check-in service, inflight service, and cleanliness.
 
 #Importing the necessary libraries 
 
@@ -18,6 +26,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.impute import KNNImputer
 from sklearn import metrics 
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.svm import SVC
+from sklearn import ensemble
+from sklearn.metrics import accuracy_score, roc_auc_score, classification_report, plot_confusion_matrix, plot_roc_curve
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -162,14 +178,13 @@ with sns.axes_style(style='ticks'):
     g = sns.catplot("satisfaction", col="Food and drink", col_wrap=6, 
                     data=train, kind="count", height=2.5, aspect=.8)
 
-## Correlation matrix heatmap-
-correlation = train.corr()
-mask = np.triu(np.ones_like(correlation, dtype=np.bool))
-f, ax = plt.subplots(figsize=(20, 20))
-pal_values = sns.diverging_palette(150, 1, as_cmap=True)
-sns.heatmap(correlation, mask=mask, cmap=pal_values, vmax=None, 
-            center=0,square=True, annot=True, linewidths=.5, cbar_kws={"shrink": .9})
-
+corr = train.corr(method='spearman')
+# Generate a mask for the upper triangle
+mask = np.zeros_like(corr, dtype=np.bool)
+mask[np.triu_indices_from(mask)] = True
+f, ax = plt.subplots(figsize=(20, 18))
+sns.heatmap(corr, annot = True, mask=mask, cmap="YlGnBu", center=0,
+            square=True, linewidths=.5)
 
 col_list = train.columns
 
@@ -286,8 +301,12 @@ plt.rcParams["figure.figsize"] = (10,5)
 ## Scaling the data so that all the predictors are given equal importance.
 r_scaler = preprocessing.MinMaxScaler()
 r_scaler.fit(train)
-scaled_data = pd.DataFrame(r_scaler.transform(train), columns=train.columns)
-scaled_data.head()
+scaled_train = pd.DataFrame(r_scaler.transform(train), columns=train.columns)
+scaled_train.head()
+
+r_scaler.fit(test)
+scaled_test = pd.DataFrame(r_scaler.transform(test), columns=test.columns)
+scaled_test.head()
 
 ## Chi Square Test for feature selection
 X = scaled_data.loc[:,scaled_data.columns!='satisfaction']
@@ -298,8 +317,8 @@ train_new = selector.transform(X)
 print(X.columns[selector.get_support(indices=True)])
 
 ##Permutation test -
-perm = PermutationImportance(rf(n_estimators=100, random_state=0).fit(X,y),random_state=1).fit(X,y)
-eli5.show_weights(perm, feature_names = X.columns.tolist())
+#perm = PermutationImportance(rf(n_estimators=100, random_state=0).fit(X,y),random_state=1).fit(X,y)
+#eli5.show_weights(perm, feature_names = X.columns.tolist())
 
 #PCA
 pca = PCA(n_components=10)
@@ -318,3 +337,115 @@ plt.xlabel('Principal component index')
 plt.legend(loc='best')
 plt.tight_layout()
 plt.show()
+
+features = ['Type of Travel', 'Class', 'Flight Distance', 'Inflight wifi service',
+       'Online boarding', 'Seat comfort', 'Inflight entertainment',
+       'On-board service', 'Leg room service', 'Cleanliness']
+
+test
+
+X_train = scaled_train[features]
+y_train = scaled_train['satisfaction']
+X_test = scaled_test[features]
+y_test = scaled_test['satisfaction']
+
+X_train.head()
+
+X_test.head()
+
+len(X_train)
+
+len(y_train)
+
+## Classification Models 
+
+### Logistic Regression 
+
+logistic_params = {'penalty': 'elasticnet', 'l1_ratio':0.5, 'solver': 'saga'}
+logistic_model = LogisticRegression(**logistic_params)
+
+#Fitting Logistic regression model 
+logistic_model.fit(X_train, y_train)
+
+log_pred = logistic_model.predict(X_test)
+
+accuracy = accuracy_score(y_test, log_pred)
+print("The accuracy of Logistic regression model is : {}".format(accuracy))
+
+#AUC 
+roc = roc_auc_score(y_test, log_pred)
+print("ROC Area under the curve for Logistic model : {}".format(roc))
+plot_roc_curve(logistic_model, X_test, y_test)
+
+print(classification_report(y_test, log_pred, digits=4))
+
+plot_confusion_matrix(logistic_model, X_test, y_test)
+
+### Decision Trees 
+
+decision_params = {'max_depth': 12,'max_features': "sqrt"}
+decision_model = DecisionTreeClassifier(**decision_params)
+
+#Fitting Decision tree model 
+decision_model.fit(X_train, y_train)
+
+decision_pred = decision_model.predict(X_test)
+
+accuracy = accuracy_score(y_test, decision_pred)
+print("The accuracy of decison tree model is : {}".format(accuracy))
+
+#AUC 
+roc = roc_auc_score(y_test, decision_pred)
+print("ROC Area under the curve for decision tree model : {}".format(roc))
+plot_roc_curve(decision_model, X_test, y_test)
+
+print(classification_report(y_test, decision_pred, digits=4))
+
+plot_confusion_matrix(decision_model, X_test, y_test)
+
+#### Graphical visualization of the decision tree
+
+### Random Forests 
+
+random_params = {'max_depth': 16,'min_samples_leaf': 1,'min_samples_split': 2,
+                 'n_estimators': 100,'random_state': 67781}
+random_model = RandomForestClassifier(**random_params)
+
+#Fitting random Forests model 
+random_model.fit(X_train, y_train)
+
+random_pred = random_model.predict(X_test)
+
+accuracy = accuracy_score(y_test, random_pred)
+print("The accuracy of Logistic regression model is : {}".format(accuracy))
+
+#AUC 
+roc = roc_auc_score(y_test, random_pred)
+print("ROC Area under the curve for Logistic model : {}".format(roc))
+plot_roc_curve(random_model, X_test, y_test)
+
+print(classification_report(y_test, random_pred, digits=4))
+
+plot_confusion_matrix(random_model, X_test, y_test)
+
+### K-Nearest Neighbours 
+
+knn_params = {'n_neighbors':10, 'algorithm': 'kd_tree', 'n_jobs':4}
+knn_model = KNeighborsClassifier(**knn_params)
+
+#Fitting KNN model 
+knn_model.fit(X_train, y_train)
+
+knn_pred = knn_model.predict(X_test)
+
+accuracy = accuracy_score(y_test, knn_pred)
+print("The accuracy of Logistic regression model is : {}".format(accuracy))
+
+#AUC 
+roc = roc_auc_score(y_test, knn_pred)
+print("ROC Area under the curve for K-Nearest neighbours : {}".format(roc))
+plot_roc_curve(logistic_model, X_test, y_test)
+
+print(classification_report(y_test, knn_pred, digits=4))
+
+plot_confusion_matrix(knn_model, X_test, y_test)
