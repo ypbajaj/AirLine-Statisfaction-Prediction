@@ -307,3 +307,14 @@ principalComponents = pca.fit_transform(X)
 principalDf = pd.DataFrame(data = principalComponents
              , columns = ['PC1', 'PC2','PC3','PC4','PC5','PC6','PC7','PC8','PC9','PC10'])
 principalDf
+
+exp_var_pca = pca.explained_variance_ratio_
+cum_sum_eigenvalues = np.cumsum(exp_var_pca)
+
+plt.bar(range(0,len(exp_var_pca)), exp_var_pca, alpha=0.5, align='center', label='Individual explained variance')
+plt.step(range(0,len(cum_sum_eigenvalues)), cum_sum_eigenvalues, where='mid',label='Cumulative explained variance')
+plt.ylabel('Explained variance ratio')
+plt.xlabel('Principal component index')
+plt.legend(loc='best')
+plt.tight_layout()
+plt.show()
